@@ -47,3 +47,5 @@ You can launch the scripts in verbose mode with:
 
     verbose=true sh <script.inst>
 
+* Setup keyboard with `setup_kbdlayout.inst`
+  And reboot.

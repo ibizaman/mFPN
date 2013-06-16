@@ -1,0 +1,9 @@
+#!/bin/sh
+
+source $(dirname "$0")/common.sh
+
+file=/etc/vconsole.conf
+
+save_once $file bck
+sed -i "s/^KEYMAP=.*$/KEYMAP=be-latin1/" $file
+delete_bck_if_same $file bck
