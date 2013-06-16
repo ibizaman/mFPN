@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# http://forum.xbmc.org/showthread.php?tid=43451
+
+source $(dirname "$0")/common.sh
+
+#------------#
+# Parameters #
+#------------#
+xbmc_user=xbmcuser
+xbmc_home=/home/$xbmc_user
+
+template_dir=xbmc
+
+autologin_template=$template_dir/autologin.conf.template
+autologin_dir=/usr/local/lib/systemd/system/getty@tty1.service.d
+autologin_destination=$autologin_dir/autologin.conf
+
+bash_original=/etc/skel/.bash_profile
+bash_template=$template_dir/bash_profile.template
+bash_destination=$xbmc_home/.bash_profile
+
+xinitrc_original=/etc/skel/.xinitrc
+xinitrc_template=$template_dir/xinitrc.template
+xinitrc_destination=$xbmc_home/.xinitrc
+
+#--------------------------#
+# Install missing packages #
+#--------------------------#
+packages=(xorg-server xorg-xinit xf86-video-fbdev xbmc-rbp)
+
+install_missing_packages "${packages[@]}"
+
+#---------------#
+# Add XBMC user #
+#---------------#
+useradd -m -U $xbmc_user 2> /dev/null && \
+    debug "Adding $xbmc_user user" || \
+    debug "User $xbmc_user already exists"
+
+#------------------#
+# Login at startup #
+#------------------#
+if [ ! -d $autologin_dir ]
+then mkdir $autologin_dir && debug "Creating $autologin_dir directory"
+else debug "Skipping $autologin_dir direction creation"
+fi
+save_once $autologin_destination bck
+deploy_template $autologin_template $autologin_destination
+delete_bck_if_same $autologin_destination bck
+
+#--------------------#
+# Start X at startup #
+#--------------------#
+save_once $bash_destination bck
+cp $bash_original $xbmc_home
+append_template $bash_template $bash_destination
+delete_bck_if_same $bash_destination bck
+
+#-------------------------#
+# Start xbmc at X startup #
+#-------------------------#
+save_once $xinitrc_destination bck
+cp $xinitrc_original $xbmc_home
+append_template $xinitrc_template $xinitrc_destination
+delete_bck_if_same $xinitrc_destination bck

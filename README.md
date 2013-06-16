@@ -47,9 +47,17 @@ You can launch the scripts in verbose mode with:
 
     verbose=true sh <script.inst>
 
+XBMC
+----
+To install XBMC from a scratch system, you should run these scripts
 * Setup keyboard with `setup_kbdlayout.inst`
   And reboot.
-* `update_pacman.inst` was needed when upgrading since binaries were moved to
-  /usr/bin: (see this thread)[https://www.archlinux.org/news/binaries-move-to-usrbin-requiring-update-intervention/].
 * Setup wifi with `setup_wifi.inst`
   The conf file is `setup_wifi/setup_wifi.conf`
+* Update pacman with `pacman -Syu`
+* Install xbmc with `xbmc.inst`
+
+Miscellaneous
+-------------
+* `update_pacman.inst` was needed when upgrading since binaries were moved to
+  /usr/bin: (see this thread)[https://www.archlinux.org/news/binaries-move-to-usrbin-requiring-update-intervention/].

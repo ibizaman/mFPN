@@ -71,6 +71,36 @@ function delete_bck_if_same
     return 0
 }
 
+function update_pacman
+{
+    debug "Upgrading all packages"
+    pacman -Suy || error "Not able to update pacman"
+}
+
+function install_missing_packages
+{
+    debug "Installing missing packages"
+    for package in $@
+    do
+        if ! package_exists $package
+        then update_pacman
+             debug "installing "$package
+             package_install $package || error "$package installation failed"
+        else debug "skipping already installed "$package
+        fi      
+    done
+}
+
+function package_exists
+{
+    pacman -Q $1 >/dev/null 2>&1
+}
+
+function package_install
+{
+    pacman -S --noconfirm $@
+}
+
 function sed_from_vars
 {
     [ ${#@} -eq 0 ] && echo "sed -e s/a/a/" && return 0
@@ -89,6 +119,15 @@ function deploy_template
     [ ! -f "$1" ] && error "Trying to deploy a non-existing template $1"
     debug "Deploys template $1 to $2"
     mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) > "$2"
+}
+
+# replaces variables ($3) in template ($1) and create
+# append it to required location ($2)
+function append_template
+{
+    [ ! -f "$1" ] && error "Trying to deploy a non-existing template $1"
+    debug "Appends template $1 to $2"
+    mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) >> "$2"
 }
 
 function install_systemd_service
