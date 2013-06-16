@@ -49,3 +49,5 @@ You can launch the scripts in verbose mode with:
 
 * Setup keyboard with `setup_kbdlayout.inst`
   And reboot.
+* `update_pacman.inst` was needed when upgrading since binaries were moved to
+  /usr/bin: (see this thread)[https://www.archlinux.org/news/binaries-move-to-usrbin-requiring-update-intervention/].

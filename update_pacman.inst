@@ -1,0 +1,5 @@
+#!/bin/sh
+
+pacman -Syu --ignore filesystem,bash && \
+pacman -S bash && \
+pacman -Su
