@@ -51,3 +51,5 @@ You can launch the scripts in verbose mode with:
   And reboot.
 * `update_pacman.inst` was needed when upgrading since binaries were moved to
   /usr/bin: (see this thread)[https://www.archlinux.org/news/binaries-move-to-usrbin-requiring-update-intervention/].
+* Setup wifi with `setup_wifi.inst`
+  The conf file is `setup_wifi/setup_wifi.conf`

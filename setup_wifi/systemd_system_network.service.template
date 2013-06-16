@@ -1,0 +1,19 @@
+[Unit]
+Description=Network Connectivity
+Wants=network.target
+Before=network.target
+Wants=${network_device}
+Before=${network_device}
+BindsTo=sys-subsystem-net-devices-${interface}.device
+After=sys-subsystem-net-devices-${interface}.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=${if_destination}
+ExecStart=/sbin/ip link set dev ${interface} up
+ExecStart=/usr/sbin/wpa_supplicant -B -i ${interface} -c ${wpa_destination}
+ExecStart=/sbin/dhcpcd ${interface}
+
+[Install]
+WantedBy=multi-user.target

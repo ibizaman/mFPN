@@ -11,6 +11,37 @@ function error
     echo "$@, aborting..." && exit 1
 }
 
+function at_least_one_variable_set
+{
+    one_is_set=1
+    for var in $@
+    do [ ! -z "${!var}" ] \
+        && debug "Variable $var set" \
+        && one_is_set=0
+    done
+    return $one_is_set
+}
+
+function all_variables_set
+{
+    all_are_set=0
+    for var in $@
+    do [ -z "${!var}" ] \
+        && debug "Variable $var not set" \
+        && all_are_set=1
+    done
+    return $all_are_set
+}
+
+function read_from_conf
+{
+    [ ! -f "$1" ] && error "The file $1 must exist to read conf"
+    [ "${#@}" -le 1 ] && error "You want to at least get one variable from the conf file"
+    at_least_one_variable_set ${@:2} && debug "Overriding existing variables"
+    source "$1"
+    all_variables_set ${@:2} || error "Not all variables are set"
+}
+
 function save_once
 {
     if [ -z $2 ]
@@ -38,4 +69,40 @@ function delete_bck_if_same
     then rm $1.$2 && debug "Deleting backup $1.$2"
     fi
     return 0
+}
+
+function sed_from_vars
+{
+    [ ${#@} -eq 0 ] && echo "sed -e s/a/a/" && return 0
+    cmd="sed"
+    for name in "${@}"
+    do
+        cmd="$cmd -e s/\${${name}}/${!name//\//\/}/"
+    done
+    echo "$cmd"
+}
+
+# replaces variables ($3) in template ($1) and create
+# move it to required location ($2)
+function deploy_template
+{
+    [ ! -f "$1" ] && error "Trying to deploy a non-existing template $1"
+    debug "Deploys template $1 to $2"
+    mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) > "$2"
+}
+
+function install_systemd_service
+{
+    debug "Reloading systemd, enabling and starting new $1 service"
+    systemctl --quiet daemon-reload \
+    && systemctl --quiet enable "$1" \
+    && systemctl --quiet reload-or-restart "$1" \
+    || error "Unable to install $1 service"
+}
+
+function disable_systemd_service
+{
+    systemctl --quiet disable "$1" && \
+        debug "Disabling $1 service" || \
+        error "Unable to disable $1 service"
 }

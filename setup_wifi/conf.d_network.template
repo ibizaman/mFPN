@@ -1,0 +1,5 @@
+interface=${interface}
+address=${ip_address}
+netmask=${ip_netmask}
+broadcast=${ip_broadcast}
+gateway=${ip_gateway}
