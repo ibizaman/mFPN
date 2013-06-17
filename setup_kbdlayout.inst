@@ -2,8 +2,10 @@
 
 source $(dirname "$0")/common.sh
 
+read_from_conf setup_kbdlayout/setup_kbdlayout.conf keymap
+
 file=/etc/vconsole.conf
 
 save_once $file bck
-sed -i "s/^KEYMAP=.*$/KEYMAP=be-latin1/" $file
+sed -i "s/^KEYMAP=.*$/KEYMAP=$keymap/" $file
 delete_bck_if_same $file bck
