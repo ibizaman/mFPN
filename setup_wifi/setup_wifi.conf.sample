@@ -1,7 +1,10 @@
 # None should be empty
+type=static|dynamic
 essid=
 passphrase=
 ip_address=
 ip_netmask=
 ip_broadcast=
 ip_gateway=
+dns_domain=
+dns_server=

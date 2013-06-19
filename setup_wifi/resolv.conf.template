@@ -1,0 +1,2 @@
+domain ${dns_domain}
+nameserver ${dns_server}

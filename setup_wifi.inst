@@ -1,19 +1,37 @@
 #!/bin/sh
 
+# https://wiki.archlinux.org/index.php/Wireless_Setup#Manual_setup
+# https://wiki.archlinux.org/index.php/Systemd
+
 source $(dirname "$0")/common.sh
 
-read_from_conf setup_wifi/setup_wifi.conf essid passphrase ip_address ip_netmask ip_broadcast ip_gateway
+read_from_conf setup_wifi/setup_wifi.conf type
+[ $type != "static" ] && [ $type != "dynamic" ] && error "In conf file, type must be static or dynamic"
+if [ $type = "static" ]
+then read_from_conf setup_wifi/setup_wifi.conf type essid passphrase ip_address ip_netmask ip_broadcast ip_gateway
+else read_from_conf setup_wifi/setup_wifi.conf type essid passphrase 
+fi
 
 wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
 network_device=$(systemctl --full | grep wlan0 | grep sys-subsystem | cut -d" " -f1)
 [ -z $network_device ] && error "No Wireless device found"
 
-if_template=setup_wifi/conf.d_network.template
+if_template=setup_wifi/${type}_conf.d_network.template
 if_destination=/etc/conf.d/network
 interface=wlan0
 
-systemd_template=setup_wifi/systemd_system_network.service.template
+if [ $type = "static" ]; then
+    dns_template=setup_wifi/resolv.conf.template
+    dns_destination=/etc/resolv.conf
+fi
+
+systemd_template=setup_wifi/${type}_network.service.template
 systemd_destination=/usr/local/lib/systemd/system/network.service
+
+#------------------#
+# stop old service #
+#------------------#
+stop_systemd_service network.service
 
 #-----------------------------------------------#
 # create etc/wpa_supplicant/wpa_supplicant.conf #
@@ -31,22 +49,36 @@ delete_bck_if_same $wpa_destination example
 #---------------------#
 save_once $if_destination bck
 
-deploy_template $if_template $if_destination interface ip_address ip_netmask ip_broadcast ip_gateway
+if [ $type = "static" ]
+then deploy_template $if_template $if_destination interface ip_address ip_netmask ip_broadcast ip_gateway
+else deploy_template $if_template $if_destination interface 
+fi
 
 delete_bck_if_same $if_destination bck
 
-#-----------------------------#
-# create systemd startup file #
-#-----------------------------#
+#--------------------#
+# create resolv file #
+#--------------------#
+if [ $type = "static" ]; then
+    save_once $dns_destination bck
+
+    deploy_template $dns_template $dns_destination dns_domain dns_server
+
+    delete_bck_if_same $dns_destination bck
+fi
+
+#---------------------------#
+# create or replace service #
+#---------------------------#
 save_once $systemd_destination bck
 
 deploy_template $systemd_template $systemd_destination if_destination wpa_destination network_device
 
 delete_bck_if_same $systemd_destination bck
 
-#-------------#
-# load daemon #
-#-------------#
+#--------------#
+# load service #
+#--------------#
 install_systemd_service network.service
 
 disable_systemd_service wpa_supplicant

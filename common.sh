@@ -130,6 +130,12 @@ function append_template
     mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) >> "$2"
 }
 
+function stop_systemd_service
+{
+    debug "Stopping $1 service"
+    systemctl --quiet stop "$1"
+}
+
 function install_systemd_service
 {
     debug "Reloading systemd, enabling and starting new $1 service"
@@ -141,7 +147,9 @@ function install_systemd_service
 
 function disable_systemd_service
 {
-    systemctl --quiet disable "$1" && \
+    if systemctl --quiet is-enabled "$1"
+    then systemctl --quiet disable "$1" && \
         debug "Disabling $1 service" || \
         error "Unable to disable $1 service"
+    fi
 }
