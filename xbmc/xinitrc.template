@@ -5,11 +5,3 @@ do
     /usr/bin/xbmc --standalone
     restart_count=$(($restart_count +1))
 done
-
-echo "XBMC restarted more than $max_restart times.
-To avoid letting you stuck in an infinite loop,
-XBMC will stop automatically restarting from now on.
-It would be a good idea to check what is going on in
-the crash logs.
-If you want to restart XBMC, simply issue \"startx\".
-You can reboot your RPi with \"reboot\"."
