@@ -42,17 +42,19 @@ function read_from_conf
     all_variables_set ${@:2} || error "Not all variables are set"
 }
 
-function save_once
+function backup_file
 {
-    if [ -z $2 ]
-    then error "second argument to save_once must be non empty"
-    fi
+    [ ! -f $1 ] && error "Cannot backup non existing file $1"
 
-    if [ ! -f "$1"."$2" ] && [ -f "$1" ]
+    bck="$1".bck
+    orig="$1".orig
+    if [ ! -f "$orig" ]
     then
-        debug "Saving $1 to $1.$2"
-        cp "$1" "$1"."$2"
+        debug "Saving original file $1"
+        cp "$1" "$orig"
     fi
+    debug "Saving last version of file $1"
+    cp "$1" "$bck"
 }
 
 function same_file
@@ -63,10 +65,12 @@ function same_file
     fi
 }
 
-function delete_bck_if_same
+function delete_backup_if_obsolete
 {
-    if same_file $1 $1.$2 
-    then rm $1.$2 && debug "Deleting backup $1.$2"
+    [ ! -f "$1" ] && error "File $1 does not exist"
+    bck="$1".bck
+    if same_file "$1" "$bck"
+    then rm "$bck" && debug "Deleting backup $bck"
     fi
     return 0
 }
@@ -112,22 +116,50 @@ function sed_from_vars
     echo "$cmd"
 }
 
-# replaces variables ($3) in template ($1) and create
-# move it to required location ($2)
+# replaces variables ($3) in template ($1) and create move it to required
+# location ($2) while saving existing file
 function deploy_template
 {
-    [ ! -f "$1" ] && error "Trying to deploy a non-existing template $1"
-    debug "Deploys template $1 to $2"
-    mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) > "$2"
+    template="$1"
+    destination="$2"
+    destination_dir=$(dirname "$destination")
+
+    [ ! -f "$template" ] && error "Trying to deploy a non-existing template $template"
+
+    if [ ! -d "$destination" ] 
+    then mkdir -p "$destination_dir" \
+        || error "Cannot create directory $destination_dir"
+    fi
+
+    backup_file "$destination"
+    debug "Deploys template $template to $destination"
+    cat "$template" | $(sed_from_vars ${@:3}) > "$destination"
+    delete_backup_if_obsolete "$destination"
 }
 
-# replaces variables ($3) in template ($1) and create
-# append it to required location ($2)
+# copy file ($2) to location ($3) and append a template ($1) where variables
+# ($4) are replaced
 function append_template
 {
-    [ ! -f "$1" ] && error "Trying to deploy a non-existing template $1"
-    debug "Appends template $1 to $2"
-    mkdir -p "$(dirname $2)" && cat "$1" | $(sed_from_vars ${@:3}) >> "$2"
+    template="$1"
+    original="$2"
+    destination="$3"
+    destination_dir=$(dirname "$destination")
+
+    [ ! -f "$template" ] && error "Cannot deploy a non-existing template $template"
+    [ ! -f "$original" ] && error "Cannot append to a non-existing file $original"
+
+    if [ ! -d "$destination_dir" ] 
+    then mkdir -p "$destination_dir" \
+        || error "Cannot create directory $destination_dir"
+    fi
+
+    backup_file "$destination"
+    debug "Copying file $original to $destination"
+    cp $original $destination || error "Cannot copy to $destination"
+    debug "Appends template $template to file $original in $destination"
+    cat "$template" | $(sed_from_vars ${@:4}) >> "$destination"
+    delete_backup_if_obsolete "$destination"
 }
 
 function stop_systemd_service

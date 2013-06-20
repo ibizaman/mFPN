@@ -47,26 +47,14 @@ useradd -m -U $xbmc_user 2> /dev/null && \
 #------------------#
 # Login at startup #
 #------------------#
-if [ ! -d $autologin_dir ]
-then mkdir $autologin_dir && debug "Creating $autologin_dir directory"
-else debug "Skipping $autologin_dir direction creation"
-fi
-save_once $autologin_destination bck
 deploy_template $autologin_template $autologin_destination
-delete_bck_if_same $autologin_destination bck
 
 #--------------------#
 # Start X at startup #
 #--------------------#
-save_once $bash_destination bck
-cp $bash_original $xbmc_home
-append_template $bash_template $bash_destination
-delete_bck_if_same $bash_destination bck
+append_template $bash_template $bash_original $bash_destination
 
 #-------------------------#
 # Start xbmc at X startup #
 #-------------------------#
-save_once $xinitrc_destination bck
-cp $xinitrc_original $xbmc_home
-append_template $xinitrc_template $xinitrc_destination
-delete_bck_if_same $xinitrc_destination bck
+append_template $xinitrc_template $xinitrc_original $xinitrc_destination

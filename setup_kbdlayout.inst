@@ -6,6 +6,6 @@ read_from_conf setup_kbdlayout/setup_kbdlayout.conf keymap
 
 file=/etc/vconsole.conf
 
-save_once $file bck
+backup_file $file
 sed -i "s/^KEYMAP=.*$/KEYMAP=$keymap/" $file
-delete_bck_if_same $file bck
+delete_backup_if_obsolete $file

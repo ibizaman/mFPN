@@ -37,44 +37,32 @@ stop_systemd_service network.service
 # create etc/wpa_supplicant/wpa_supplicant.conf #
 # strip off psk in clear format                 #
 #-----------------------------------------------#
-save_once $wpa_destination example
+backup_file $wpa_destination
 
 debug "Copying passphrase to $wpa_destination"
 wpa_passphrase $essid $passphrase | grep -v "#psk" > $wpa_destination
 
-delete_bck_if_same $wpa_destination example
+delete_backup_if_obsolete $wpa_destination
 
 #---------------------#
 # create network file #
 #---------------------#
-save_once $if_destination bck
-
 if [ $type = "static" ]
 then deploy_template $if_template $if_destination interface ip_address ip_netmask ip_broadcast ip_gateway
 else deploy_template $if_template $if_destination interface 
 fi
 
-delete_bck_if_same $if_destination bck
-
 #--------------------#
 # create resolv file #
 #--------------------#
 if [ $type = "static" ]; then
-    save_once $dns_destination bck
-
     deploy_template $dns_template $dns_destination dns_domain dns_server
-
-    delete_bck_if_same $dns_destination bck
 fi
 
 #---------------------------#
 # create or replace service #
 #---------------------------#
-save_once $systemd_destination bck
-
 deploy_template $systemd_template $systemd_destination if_destination wpa_destination network_device
-
-delete_bck_if_same $systemd_destination bck
 
 #--------------#
 # load service #
