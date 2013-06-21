@@ -78,7 +78,7 @@ function delete_backup_if_obsolete
 function update_pacman
 {
     debug "Upgrading all packages"
-    pacman -Suy || error "Not able to update pacman"
+    pacman -Suy --noconfirm || error "Not able to update pacman"
 }
 
 function install_missing_packages
