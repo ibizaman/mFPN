@@ -13,7 +13,7 @@ you can share movies, pictures and music with friends. More on this later :)
 
 Disclaimer
 ==========
-First, this projet is *work in progress*. Second, it was designed to be used on
+First, this projet is **work in progress**. Second, it was designed to be used on
 a bare RPi where you have nothing installed on it. So be careful if you
 use the scripts on your actual RPi.
 
@@ -85,9 +85,9 @@ The scripts will install a bare XBMC on your system. They will thus add Xorg
 and the video drivers for the RPi, if needed. No window manager is installed to
 be as lightwheight as possible. They will also add an user named `xbmcuser`
 which will autologin on start and automatically start XBMC. Finally, XBMC will
-be automatically restarted 5 times in case of crash. After 5 crashes, it is
-assumed that a problem arised (e.g. crash loop) and it will not restart anymore
-without issuing `startx` manually.
+be automatically restarted a configurable number of times in case of crash.
+After 5 crashes, it is assumed that a problem arised (e.g. crash loop) and it
+will not restart anymore without issuing `startx` manually.
 
 To install XBMC from a scratch system, you should run these scripts
 * Setup keyboard with `setup_kbdlayout.inst`.
