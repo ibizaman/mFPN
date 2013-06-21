@@ -84,11 +84,11 @@ function update_pacman
 function install_missing_packages
 {
     debug "Installing missing packages"
+    update_pacman
     for package in $@
     do
         if ! package_exists $package
-        then update_pacman
-             debug "installing "$package
+        then debug "installing "$package
              package_install $package || error "$package installation failed"
         else debug "skipping already installed "$package
         fi      
