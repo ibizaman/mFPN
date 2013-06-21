@@ -1,4 +1,4 @@
-max_restart=5
+max_restart=${xbmc_max_restart}
 restart_count=0
 while [ $restart_count -lt $max_restart ]
 do

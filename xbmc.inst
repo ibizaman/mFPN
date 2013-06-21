@@ -13,8 +13,7 @@ source $(dirname "$0")/common.sh
 #------------#
 # Parameters #
 #------------#
-xbmc_user=xbmcuser
-xbmc_home=/home/$xbmc_user
+read_from_conf xbmc/xbmc.conf xbmc_user xbmc_home xbmc_max_restart
 
 template_dir=xbmc
 
@@ -57,4 +56,9 @@ append_template $bash_template $bash_original $bash_destination
 #-------------------------#
 # Start xbmc at X startup #
 #-------------------------#
-append_template $xinitrc_template $xinitrc_original $xinitrc_destination
+append_template $xinitrc_template $xinitrc_original $xinitrc_destination xbmc_max_restart
+
+#------------------------------------#
+# Allow xbmc user to shutdown/reboot #
+#------------------------------------#
+debug "Granting shutdown control to XBMC"
