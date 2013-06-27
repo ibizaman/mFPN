@@ -22,7 +22,11 @@ Installation
 All the scripts were tested on [Arch Linux ARM built on 06/06/2013][archlinux].
 So first, install archlinux on your SD card:
 
-    # On Mac OS, use rdisk to speed up the copy
+    # Instructions for Mac OS X
+    # Let's say the SD card is the disk1 device
+    diskutil unmountDisk /dev/disk1
+    cd path/to/archlinux.img
+    # On Mac OS X, use rdisk to speed up the copy
     dd bs=1m if=archlinux-hf-2013-06-06.img of=/dev/rdisk1
 
 Boot the RPi with the SD card. If there is overscan, edit `/boot/config.txt`
@@ -33,7 +37,7 @@ and reboot. Watchout, you have a US mapping:
      :wq -> Mza
 
 Since you don't have ethernet or wifi access to the RPi, at least in my case,
-you should copy the repository on a USB key that you will mount it on your RPi:
+you should copy the repository on a USB key that you will mount on your RPi:
 
     # On a mac:
     cp -a mFPN /Volumes/NAME_OF_USB_KEY
