@@ -14,6 +14,7 @@ EnvironmentFile=${if_destination}
 ExecStart=/sbin/ip link set dev ${interface} up
 ExecStart=/usr/sbin/wpa_supplicant -B -i ${interface} -c ${wpa_destination}
 ExecStart=/sbin/dhcpcd ${interface}
+ExecStop=/sbin/ip link set dev ${interface} down
 
 [Install]
 WantedBy=multi-user.target

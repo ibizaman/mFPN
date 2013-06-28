@@ -1,7 +1,12 @@
 # None should be empty
 type=static|dynamic
+secure=no|wpa
 essid=
+
+# Needed if wpa
 passphrase=
+
+# Needed if dynamic
 ip_address=
 ip_netmask=
 ip_broadcast=

@@ -5,11 +5,23 @@
 
 source $(dirname "$0")/common.sh
 
-read_from_conf setup_wifi/setup_wifi.conf type
+#--------------------#
+# Check dhcp and wpa #
+#--------------------#
+read_from_conf setup_wifi/setup_wifi.conf type secure
 [ $type != "static" ] && [ $type != "dynamic" ] && error "In conf file, type must be static or dynamic"
-if [ $type = "static" ]
-then read_from_conf setup_wifi/setup_wifi.conf type essid passphrase ip_address ip_netmask ip_broadcast ip_gateway
-else read_from_conf setup_wifi/setup_wifi.conf type essid passphrase 
+[ $secure != "no" ] && [ $secure != "wpa" ] && error "In conf file, secure must be no or wpa"
+debug "Loading wifi with type $type and security $secure"
+
+action=${type}_${secure}
+if [ $action = "static_no" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid ip_address ip_netmask ip_broadcast ip_gateway
+elif [ $action = "static_wpa" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid passphrase ip_address ip_netmask ip_broadcast ip_gateway
+elif [ $action = "dynamic_no" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid
+elif [ $action = "dynamic_wpa" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid passphrase 
 fi
 
 wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
@@ -25,7 +37,7 @@ if [ $type = "static" ]; then
     dns_destination=/etc/resolv.conf
 fi
 
-systemd_template=setup_wifi/${type}_network.service.template
+systemd_template=setup_wifi/${type}_${secure}_network.service.template
 systemd_destination=/usr/local/lib/systemd/system/network.service
 
 #------------------#
@@ -37,12 +49,14 @@ stop_systemd_service network.service
 # create etc/wpa_supplicant/wpa_supplicant.conf #
 # strip off psk in clear format                 #
 #-----------------------------------------------#
-backup_file $wpa_destination
+if [ $secure = "wpa" ]; then
+    backup_file $wpa_destination
 
-debug "Copying passphrase to $wpa_destination"
-wpa_passphrase $essid $passphrase | grep -v "#psk" > $wpa_destination
+    debug "Copying passphrase to $wpa_destination"
+    wpa_passphrase $essid $passphrase | grep -v "#psk" > $wpa_destination
 
-delete_backup_if_obsolete $wpa_destination
+    delete_backup_if_obsolete $wpa_destination
+fi
 
 #---------------------#
 # create network file #
@@ -62,7 +76,10 @@ fi
 #---------------------------#
 # create or replace service #
 #---------------------------#
-deploy_template $systemd_template $systemd_destination if_destination wpa_destination network_device
+if [ $secure = "no" ]
+then deploy_template $systemd_template $systemd_destination if_destination essid network_device
+else deploy_template $systemd_template $systemd_destination if_destination wpa_destination network_device
+fi
 
 #--------------#
 # load service #
