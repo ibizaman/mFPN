@@ -44,7 +44,7 @@ function read_from_conf
 
 function backup_file
 {
-    [ ! -f $1 ] && error "Cannot backup non existing file $1"
+    [ ! -f $1 ] && debug "Not backing up non existing file $1" && return 0
 
     bck="$1".bck
     orig="$1".orig
