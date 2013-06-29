@@ -124,6 +124,24 @@ function ensure_directory_existence
     fi
 }
 
+# generates temporary file from generator file ($1).generate and move it to
+# destination ($2)
+function deploy_generated_file
+{
+    generator="$1".generate
+    generated="$1"
+    destination="$2"
+
+    [ ! -f "$generator" ] && error "Cannot generate a non-existing file $generator"
+
+    #ensure_directory_existence $(dirname "$destination")
+
+    debug "Generating file from $generator and moving it to $destination"
+    source ./"$generator"
+    #source "$generator" > "$generated" && mv "$generated" "$destination" \
+    #    || ( rm "$generated"; error "Cannot move file to $destination" )
+}
+
 # replaces variables ($3) in template ($1) and create move it to required
 # location ($2) while saving existing file
 function deploy_template

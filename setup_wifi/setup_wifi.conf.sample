@@ -1,10 +1,13 @@
 # Must be set
 type=static|dynamic
-secure=no|wpa
+medium=wired|wireless
 interface= #wlan0, eth0
-essid=
 
-# Needed if secure = wpa
+# Needed if medium = wireless
+essid=
+secure=no|wpa
+
+# Needed if medium = wireless && secure = wpa
 passphrase=
 
 # Needed if type = static

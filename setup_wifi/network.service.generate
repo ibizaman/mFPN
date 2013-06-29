@@ -1,0 +1,41 @@
+[ -z $medium ] || [ -z $type ] || [ -z $secure ] && error "Medium, type and secure variables must be set" 
+[ "$medium" != "wired" ] && [ "$medium" != "wireless" ] && error "medium = wired|wireless, not $wireless"
+[ "$type" != "static" ] && [ "$type" != "dynamic" ] && error "type = static|dynamic, not $type"
+[ "$secure" != "no" ] && [ "$secure" != "wpa" ] && error "secure = no|wpa, not $secure"
+
+echo '[Unit]
+Description=Network Connectivity
+Wants=network.target
+Before=network.target
+Wants=${network_device}
+Before=${network_device}
+BindsTo=sys-subsystem-net-devices-${interface}.device
+After=sys-subsystem-net-devices-${interface}.device
+'
+
+echo '[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=${if_destination}
+ExecStart=/usr/bin/ip link set dev ${interface} up'
+
+if [ "$medium" = 'wireless' ]
+then
+    if [ "$secure" = 'wpa' ]
+    then echo 'ExecStart=/usr/bin/wpa_supplicant -B -i ${interface} -c ${wpa_destination}'
+    else echo 'ExecStart=/usr/bin/iwconfig ${interface} essid ${essid}'
+    fi
+fi
+
+if [ "$type" = 'dynamic' ]
+then echo 'ExecStart=/usr/bin/dhcpcd ${interface}'
+elif [ "$type" = 'static' ]
+then echo 'ExecStart=/usr/sbin/ip addr add ${address}/${netmask} broadcast ${broadcast} dev ${interface}'
+     echo 'ExecStart=/usr/sbin/ip route add default via ${gateway}'
+     echo 'ExecStop=/usr/sbin/ip addr flush dev ${interface}'
+fi
+
+echo 'ExecStop=/usr/bin/ip link set dev ${interface} down
+
+[Install]
+WantedBy=multi-user.target'

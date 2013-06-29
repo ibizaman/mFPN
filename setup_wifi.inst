@@ -5,28 +5,37 @@
 
 source $(dirname "$0")/common.sh
 
-#----------------------------------------#
-# Check type and security from conf file #
-#----------------------------------------#
-read_from_conf setup_wifi/setup_wifi.conf type secure interface
+#------------------------------------------------#
+# Check type, medium and security from conf file #
+#------------------------------------------------#
+read_from_conf setup_wifi/setup_wifi.conf type medium interface
 [ $type != "static" ] && [ $type != "dynamic" ] && error "In conf file, type must be static or dynamic"
-[ $secure != "no" ] && [ $secure != "wpa" ] && error "In conf file, secure must be no or wpa"
-debug "Loading wifi with type $type and security $secure"
+[ $medium != "wired" ] && [ $medium != "wireless" ] && error "In conf file, medium must be wired or wireless"
 
+if [ $medium = "wired" ]
+then secure="no"
+else read_from_conf setup_wifi/setup_wifi.conf secure
+     [ $secure != "no" ] && [ $secure != "wpa" ] && error "In conf file, secure must be no or wpa if medium = wireless"
+fi
+debug "Loading $medium network with type $type and security $secure"
 
 if [ $type = "static" ]
 then read_from_conf setup_wifi/setup_wifi.conf ip_address ip_netmask ip_broadcast ip_gateway
 fi
 
-if [ $secure = "no" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid
-elif [ $secure = "wpa" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid passphrase 
-     wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
+if [ $medium = "wireless" ]
+then
+    if [ $secure = "no" ]
+    then read_from_conf setup_wifi/setup_wifi.conf essid
+    elif [ $secure = "wpa" ]
+    then read_from_conf setup_wifi/setup_wifi.conf essid passphrase 
+         wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
+    fi
+
 fi
 
-network_device=$(systemctl --full | grep wlan0 | grep sys-subsystem | cut -d" " -f1)
-[ -z $network_device ] && error "No Wireless device found"
+network_device=$(systemctl --full | grep "$interface" | grep sys-subsystem | cut -d" " -f1)
+[ -z $network_device ] && error "No Wireless device found, please plug-in your wireless USB adaptator"
 
 if_template=setup_wifi/${type}_conf.d_network.template
 if_destination=/etc/conf.d/network
@@ -36,7 +45,7 @@ if [ $type = "static" ]; then
     dns_destination=/etc/resolv.conf
 fi
 
-systemd_template=setup_wifi/${type}_${secure}_network.service.template
+systemd_generated=setup_wifi/network.service
 systemd_destination=/usr/local/lib/systemd/system/network.service
 
 #------------------#
@@ -48,7 +57,7 @@ stop_systemd_service network.service
 # create etc/wpa_supplicant/wpa_supplicant.conf #
 # strip off psk in clear format                 #
 #-----------------------------------------------#
-if [ $secure = "wpa" ]; then
+if [ $medium = "wireless" ] && [ $secure = "wpa" ]; then
     backup_file $wpa_destination
 
     debug "Copying passphrase to $wpa_destination"
@@ -75,10 +84,7 @@ fi
 #---------------------------#
 # create or replace service #
 #---------------------------#
-if [ $secure = "no" ]
-then deploy_template $systemd_template $systemd_destination if_destination essid network_device
-else deploy_template $systemd_template $systemd_destination if_destination wpa_destination network_device
-fi
+deploy_generated_file $systemd_generated $systemd_destination
 
 #--------------#
 # load service #
