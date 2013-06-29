@@ -116,20 +116,24 @@ function sed_from_vars
     echo "$cmd"
 }
 
+function ensure_directory_existence
+{
+    if [ ! -d "$1" ] 
+    then mkdir -p "$1" \
+        || error "Cannot create directory $1"
+    fi
+}
+
 # replaces variables ($3) in template ($1) and create move it to required
 # location ($2) while saving existing file
 function deploy_template
 {
     template="$1"
     destination="$2"
-    destination_dir=$(dirname "$destination")
 
     [ ! -f "$template" ] && error "Trying to deploy a non-existing template $template"
 
-    if [ ! -d "$destination" ] 
-    then mkdir -p "$destination_dir" \
-        || error "Cannot create directory $destination_dir"
-    fi
+    ensure_directory_existence $(dirname "$destination")
 
     backup_file "$destination"
     debug "Deploys template $template to $destination"
@@ -144,15 +148,11 @@ function append_template
     template="$1"
     original="$2"
     destination="$3"
-    destination_dir=$(dirname "$destination")
 
     [ ! -f "$template" ] && error "Cannot deploy a non-existing template $template"
     [ ! -f "$original" ] && error "Cannot append to a non-existing file $original"
 
-    if [ ! -d "$destination_dir" ] 
-    then mkdir -p "$destination_dir" \
-        || error "Cannot create directory $destination_dir"
-    fi
+    ensure_directory_existence $(dirname "$destination")
 
     backup_file "$destination"
     debug "Copying file $original to $destination"
