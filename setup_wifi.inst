@@ -8,7 +8,7 @@ source $(dirname "$0")/common.sh
 #--------------------#
 # Check dhcp and wpa #
 #--------------------#
-read_from_conf setup_wifi/setup_wifi.conf type secure
+read_from_conf setup_wifi/setup_wifi.conf type secure interface
 [ $type != "static" ] && [ $type != "dynamic" ] && error "In conf file, type must be static or dynamic"
 [ $secure != "no" ] && [ $secure != "wpa" ] && error "In conf file, secure must be no or wpa"
 debug "Loading wifi with type $type and security $secure"
@@ -30,7 +30,6 @@ network_device=$(systemctl --full | grep wlan0 | grep sys-subsystem | cut -d" " 
 
 if_template=setup_wifi/${type}_conf.d_network.template
 if_destination=/etc/conf.d/network
-interface=wlan0
 
 if [ $type = "static" ]; then
     dns_template=setup_wifi/resolv.conf.template

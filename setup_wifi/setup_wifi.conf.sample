@@ -1,12 +1,13 @@
-# None should be empty
+# Must be set
 type=static|dynamic
 secure=no|wpa
+interface= #wlan0, eth0
 essid=
 
-# Needed if wpa
+# Needed if secure = wpa
 passphrase=
 
-# Needed if dynamic
+# Needed if type = static
 ip_address=
 ip_netmask=
 ip_broadcast=
