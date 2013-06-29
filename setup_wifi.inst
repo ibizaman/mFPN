@@ -5,26 +5,26 @@
 
 source $(dirname "$0")/common.sh
 
-#--------------------#
-# Check dhcp and wpa #
-#--------------------#
+#----------------------------------------#
+# Check type and security from conf file #
+#----------------------------------------#
 read_from_conf setup_wifi/setup_wifi.conf type secure interface
 [ $type != "static" ] && [ $type != "dynamic" ] && error "In conf file, type must be static or dynamic"
 [ $secure != "no" ] && [ $secure != "wpa" ] && error "In conf file, secure must be no or wpa"
 debug "Loading wifi with type $type and security $secure"
 
-action=${type}_${secure}
-if [ $action = "static_no" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid ip_address ip_netmask ip_broadcast ip_gateway
-elif [ $action = "static_wpa" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid passphrase ip_address ip_netmask ip_broadcast ip_gateway
-elif [ $action = "dynamic_no" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid
-elif [ $action = "dynamic_wpa" ]
-then read_from_conf setup_wifi/setup_wifi.conf essid passphrase 
+
+if [ $type = "static" ]
+then read_from_conf setup_wifi/setup_wifi.conf ip_address ip_netmask ip_broadcast ip_gateway
 fi
 
-wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
+if [ $secure = "no" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid
+elif [ $secure = "wpa" ]
+then read_from_conf setup_wifi/setup_wifi.conf essid passphrase 
+     wpa_destination=/etc/wpa_supplicant/wpa_supplicant.conf
+fi
+
 network_device=$(systemctl --full | grep wlan0 | grep sys-subsystem | cut -d" " -f1)
 [ -z $network_device ] && error "No Wireless device found"
 
