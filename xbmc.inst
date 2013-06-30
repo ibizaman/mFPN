@@ -15,6 +15,7 @@ source $(dirname "$0")/common.sh
 #------------#
 read_from_conf xbmc/xbmc.conf xbmc_user xbmc_home xbmc_max_restart
 
+input_dev=/dev/tty0
 template_dir=xbmc
 
 autologin_template=$template_dir/autologin.conf.template
@@ -28,6 +29,9 @@ bash_destination=$xbmc_home/.bash_profile
 xinitrc_original=/etc/skel/.xinitrc
 xinitrc_template=$template_dir/xinitrc.template
 xinitrc_destination=$xbmc_home/.xinitrc
+
+rules_template=$template_dir/99-input.rules.template
+rules_destination=/etc/udev/rules.d/99-input.rules
 
 #--------------------------#
 # Install missing packages #
@@ -43,22 +47,31 @@ useradd -m -U $xbmc_user 2> /dev/null && \
     debug "Adding $xbmc_user user" || \
     debug "User $xbmc_user already exists"
 
+backup_file /etc/group
+debug "Changing groups from xbmc to $xbmc_user"
+sed -i -e 's/\(:.*\)xbmc\(,.*\)\{0,1\}$/\1'$xbmc_user'/' /etc/group
+delete_backup_if_obsolete /etc/group
+
 #------------------#
 # Login at startup #
 #------------------#
+debug "# Making auto login to $xbmc_user on startup"
 deploy_template $autologin_template $autologin_destination
 
 #--------------------#
 # Start X at startup #
 #--------------------#
+debug "# Making X start on login"
 append_template $bash_template $bash_original $bash_destination
 
 #-------------------------#
 # Start xbmc at X startup #
 #-------------------------#
+debug "# Making xbmc start at X startup"
 append_template $xinitrc_template $xinitrc_original $xinitrc_destination xbmc_max_restart
 
-#------------------------------------#
-# Allow xbmc user to shutdown/reboot #
-#------------------------------------#
-debug "Granting shutdown control to XBMC"
+#----------------------------------#
+# Allow USB keyboard to enter text #
+#----------------------------------#
+debug "# Making keyboard usable in xbmc text dialogs"
+deploy_template $rules_template $rules_destination

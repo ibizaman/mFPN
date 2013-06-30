@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", KERNEL=="tty0", GROUP="tty", MODE="0660"
