@@ -8,7 +8,7 @@
 # https://wiki.archlinux.org/index.php/XBMC
 # http://wood1978.dyndns.org/~wood/wordpress/2013/04/03/setup-xbmc-on-raspberry-pi-with-arch-linux
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 #------------#
 # Parameters #

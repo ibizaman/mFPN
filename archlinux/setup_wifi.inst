@@ -3,7 +3,7 @@
 # https://wiki.archlinux.org/index.php/Wireless_Setup#Manual_setup
 # https://wiki.archlinux.org/index.php/Systemd
 
-source $(dirname "$0")/common.sh
+source $(dirname "$0")/../common.sh
 
 #------------------------------------------------#
 # Check type, medium and security from conf file #
